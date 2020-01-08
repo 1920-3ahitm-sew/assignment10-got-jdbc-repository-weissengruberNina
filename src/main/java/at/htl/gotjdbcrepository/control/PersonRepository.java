@@ -159,7 +159,7 @@ public class PersonRepository implements Repository {
      * @return Liste aller Personen des gegebenen Hauses
      */
     public List<Person> findByHouse(String house) {
-        List<Person> persons = new ArrayList<>();
+        List<Person> personList = new ArrayList<>();
 
         try (
                 Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -169,19 +169,15 @@ public class PersonRepository implements Repository {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                Person person = new Person(resultSet.getString("name"), resultSet.getString("city"),
-                        resultSet.getString("house"));
+                Person person = new Person(resultSet.getString("name"), resultSet.getString("city"), resultSet.getString("house"));
                 person.setId(resultSet.getLong("id"));
 
-                persons.add(person);
+                personList.add(person);
             }
-
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
 
-        return persons;
-
+        return personList;
     }
 }
