@@ -17,6 +17,7 @@ public class PersonRepository implements Repository {
     private static PersonRepository instance;
 
     private PersonRepository() {
+        createTable();
     }
 
     public static synchronized PersonRepository getInstance() {
