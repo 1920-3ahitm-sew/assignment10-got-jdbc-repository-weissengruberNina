@@ -123,7 +123,6 @@ public class PersonRepository implements Repository {
 
     @Override
     public void delete(long id) {
-
     }
 
     /**
@@ -134,7 +133,23 @@ public class PersonRepository implements Repository {
      * @return die gefundene Person oder wenn nicht gefunden wird null zurückgegeben
      */
     public Person find(long id) {
+        try (
+                Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM APP.PERSON WHERE ID=?");
+        ) {
+            preparedStatement.setLong(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
+            while (resultSet.next()){
+                Person person = new Person(resultSet.getString("name"), resultSet.getString("city"),
+                        resultSet.getString("house"));
+                person.setId(resultSet.getLong("id"));
+
+                return person;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
