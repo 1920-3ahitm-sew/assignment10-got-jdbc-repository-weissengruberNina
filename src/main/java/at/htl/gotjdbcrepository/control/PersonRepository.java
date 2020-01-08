@@ -3,6 +3,7 @@ package at.htl.gotjdbcrepository.control;
 import at.htl.gotjdbcrepository.entity.Person;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,8 +20,11 @@ public class PersonRepository implements Repository {
     }
 
     public static synchronized PersonRepository getInstance() {
+        if (instance == null) {
+            instance = new PersonRepository();
+        }
 
-        return null;
+        return instance;
     }
 
     private void createTable() {
@@ -42,11 +46,11 @@ public class PersonRepository implements Repository {
     }
 
     public void deleteAll() {
-        try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
-            try (Statement stmt = conn.createStatement()){
+        try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
+            try (Statement stmt = conn.createStatement()) {
                 String sql = "DELETE FROM " + TABLE_NAME;
                 PreparedStatement preparedStatement = conn.prepareStatement(sql);
-                final int rowsAffected =preparedStatement.executeUpdate();
+                final int rowsAffected = preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -54,14 +58,13 @@ public class PersonRepository implements Repository {
     }
 
     /**
-     *
      * Hat newPerson eine ID (id != null) so in der Tabelle die entsprechende Person gesucht und upgedated
      * Hat newPerson keine ID wird ein neuer Datensatz eingefügt.
-     *
+     * <p>
      * Wie man die generierte ID zurück erhält: https://stackoverflow.com/a/1915197
-     *
+     * <p>
      * Falls ein Fehler auftritt, wird nur die Fehlermeldung ausgegeben, der Programmlauf nicht abgebrochen
-     *
+     * <p>
      * Verwenden sie hier die privaten MEthoden update() und insert()
      *
      * @param newPerson
@@ -74,7 +77,6 @@ public class PersonRepository implements Repository {
     }
 
     /**
-     *
      * Wie man die generierte ID erhält: https://stackoverflow.com/a/1915197
      *
      * @param personToSave
@@ -111,10 +113,9 @@ public class PersonRepository implements Repository {
     }
 
     /**
-     *
      * @param personToSave
      * @return wenn erfolgreich --> Anzahl der eingefügten Zeilen, also 1
-     *         wenn nicht erfolgreich --> -1
+     * wenn nicht erfolgreich --> -1
      */
     private int update(Person personToSave) {
 
@@ -126,7 +127,6 @@ public class PersonRepository implements Repository {
     }
 
     /**
-     *
      * Finden Sie eine Person anhand Ihrer ID
      *
      * @param id
@@ -140,7 +140,7 @@ public class PersonRepository implements Repository {
             preparedStatement.setLong(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 Person person = new Person(resultSet.getString("name"), resultSet.getString("city"),
                         resultSet.getString("house"));
                 person.setId(resultSet.getLong("id"));
@@ -154,14 +154,33 @@ public class PersonRepository implements Repository {
     }
 
     /**
-     *
      * @param house Name des Hauses
      * @return Liste aller Personen des gegebenen Hauses
      */
     public List<Person> findByHouse(String house) {
+        List<Person> persons = new ArrayList<>();
 
-        return null;
+        try (
+                Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM APP.PERSON WHERE HOUSE=?");
+        ) {
+            preparedStatement.setString(1, house);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                Person person = new Person(resultSet.getString("name"), resultSet.getString("city"),
+                        resultSet.getString("house"));
+                person.setId(resultSet.getLong("id"));
+
+                persons.add(person);
+            }
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return persons;
+
     }
-
-
 }
