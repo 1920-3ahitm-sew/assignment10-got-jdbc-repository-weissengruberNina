@@ -81,8 +81,33 @@ public class PersonRepository implements Repository {
      * @return Rückgabe der Person inklusive der neu generierten ID
      */
     private Person insert(Person personToSave) {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO APP.PERSON (name, city, house) values (?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            {
+                preparedStatement.setString(1, personToSave.getName());
+                preparedStatement.setString(2, personToSave.getCity());
+                preparedStatement.setString(3, personToSave.getHouse());
 
-        return null;
+                if (preparedStatement.executeUpdate() == 0) {
+                    throw new SQLException("Creating user failed, no rows affected");
+                }
+
+                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        personToSave.setId(generatedKeys.getLong(1));
+                    } else {
+                        throw new SQLException("Creating user failed, no ID obtained");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return personToSave;
     }
 
     /**
