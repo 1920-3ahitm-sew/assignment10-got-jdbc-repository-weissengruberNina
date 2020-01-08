@@ -42,7 +42,15 @@ public class PersonRepository implements Repository {
     }
 
     public void deleteAll() {
-
+        try (Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+            try (Statement stmt = conn.createStatement()){
+                String sql = "DELETE FROM " + TABLE_NAME;
+                PreparedStatement preparedStatement = conn.prepareStatement(sql);
+                final int rowsAffected =preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -62,7 +70,7 @@ public class PersonRepository implements Repository {
     @Override
     public Person save(Person newPerson) {
 
-        return null;
+        return insert(new Person());
     }
 
     /**
